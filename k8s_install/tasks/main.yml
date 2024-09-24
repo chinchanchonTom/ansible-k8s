@@ -1,0 +1,59 @@
+---
+- name: Install k8s dependecies 
+  apt:  
+    name: 
+      - ca-certificates
+      - curl
+      - apt-transport-https
+      - keepalived 
+      - haproxy
+    state: present 
+    update_cache: yes 
+
+- name: Create folder for keyrings
+  command: sudo mkdir -m 755 /etc/apt/keyrings
+
+- name: add GPG k8s key 
+  apt_key:
+    url: "{{ k8s_gpg_key }}"
+    state: present  
+    keyring: /etc/apt/keyrings/kuberenetes-archive-keyring.gpg
+
+- name: Adding repo k8s 
+  apt_repo:
+    repo: "{{ k8s_apt_repo}}"
+    state: present 
+
+- name: install k8s 
+  apt: 
+    name:
+      - kubectl
+      - kubeadm 
+      - kubelet
+
+- name: Restart kubelet 
+  service:
+    name: kubelet
+    state: restarted
+
+- name: Enabling CNI in conteinerd 
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '^disabled_plugins'
+    line: enable_plugins="[cri]"
+    state: present 
+
+- name: restarted conrainerd 
+  service:
+    name: containerd 
+    state: restarted
+
+- name: remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent 
+  with_items: 
+    - swap
+    - none
+

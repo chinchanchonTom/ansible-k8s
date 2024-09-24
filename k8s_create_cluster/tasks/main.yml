@@ -1,0 +1,28 @@
+---
+
+- name: Init the cluster k8s
+  become_user: root  
+  command: kubeadm init
+
+- name: get permision 
+  shell: "{{ item }}"
+  become_user: debian
+  with_items: 
+    - mkdir -p $HOME/.kube
+    - sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    - sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+- name: Install calico pod network 
+  become: false
+  shell: "{{ item }}"
+  with_items: 
+    - curl  https://github.com/projectcalico/calico/blob/v3.28.2/manifests/calico.yaml -O
+    - kubectl apply -f calico.yaml
+
+- name: Generate join command 
+  become_user: debian
+  command: kubeadm token create --print-join-command
+  register: join_command 
+
+- name: Copy join command to local file 
+  local_action: copy content="{{ join_command.stdout_lisen[0] }}" dest="./join-command"

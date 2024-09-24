@@ -1,0 +1,28 @@
+---
+- name: install docker and kubectl 
+  hosts: [master,worker]
+  remote_user: debian
+  roles:
+    - docker_install
+    - k8s_install
+
+- name: create cluster
+  hosts: [master]
+  become: yes 
+  remote_user: debian
+  roles:
+    - k8s_create_cluster
+
+- name: node invide 
+  hosts: [worcker]
+  become: yes 
+  remote_user: debian
+  roles:
+    - node_invite
+
+- name: create dashboard 
+  hosts: master
+  become: yes 
+  remote_user: debian
+  roles:
+    - create_dashboard

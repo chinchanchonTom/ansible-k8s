@@ -1,0 +1,4 @@
+---
+k8s_gpg_key: "https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key"
+k8s_apt_repo: "https://pkgs.k8s.io/core:/stable:/v1.30/deb/"
+

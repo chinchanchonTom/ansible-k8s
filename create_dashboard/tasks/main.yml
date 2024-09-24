@@ -1,0 +1,24 @@
+---
+- name: create dashboard 
+  become_user: debian
+  command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+
+- name: create user 
+  become_user: debian
+  command: "{{ item }}"
+  with_items: 
+    - kubectl create serviceaccount admin-user -n kubernetes-dashboard
+    - kubectl create clusterrolebinding dashboard-admin -n kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:admin-user
+
+- name: create token 
+  become_user: debian 
+  command: kubectl -n kubernetes-dashboard create token admin-user
+  register: dashboard-token 
+
+- name: copy token to local file 
+  become: true 
+  local_action: copy content="{{ dashboard-token.stdout_lines[0] }}" dest="./dashboard_token"
+
+- name: start dashboard
+  become_user: debian 
+  shell: nohup kubectl proxy &

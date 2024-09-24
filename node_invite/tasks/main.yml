@@ -1,0 +1,9 @@
+---
+- name: copy the join command to server localtion 
+  copy:
+    src: "join-command" 
+    dest: "/tmp/join-command.sh"
+    mode: "0777"
+
+- name: join the node 
+  command: sh /tmp/join-command.sh
